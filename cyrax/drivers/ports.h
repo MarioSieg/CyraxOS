@@ -3,11 +3,12 @@
 #ifndef PORTS_H
 #define PORTS_H
 
-#include "../inc/types.h"
+#include "../inc/clibc/stdint.h"
+#include "../inc/clibc/stddef.h"
 
-extern u8 port_byte_in(const u16 _port);
-extern void port_byte_out(const u16 _port, const u8 _data);
-extern u16 port_word_in(const u16 _port);
-extern void port_word_out(const u16 _port, const u16 _data);
+extern uint8_t port_byte_in(const uint16_t _port);
+extern void port_byte_out(const uint16_t _port, const uint8_t _data);
+extern uint16_t port_word_in(const uint16_t _port);
+extern void port_word_out(const uint16_t _port, const uint16_t _data);
 
 #endif
