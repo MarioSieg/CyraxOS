@@ -2,6 +2,7 @@
 
 #include "kstd.h"
 #include "../drivers/screen.h"
+#include "../inc/clibc/ctype.h"
 
 extern void dump_info();
 

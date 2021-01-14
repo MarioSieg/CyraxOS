@@ -1,4 +1,4 @@
-C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c src/*.c)
 HEADERS = $(wildcard kernel/*.h drivers/*.h inc/*.h)
 OBJ = ${C_SOURCES:.c=.o}
 
@@ -35,5 +35,5 @@ debug: cyrax.iso kernel.elf
 
 clean:
 	rm -rf *.bin *.dis *.o *.elf cyrax.iso
-	rm -rf kernel/*.o boot/*.bin drivers/*.o boot/*.o
-	rm -rf kernel/*.c.asm drivers/*.c.asm
+	rm -rf kernel/*.o boot/*.bin drivers/*.o boot/*.o src/*.o
+	rm -rf kernel/*.c.asm drivers/*.c.asm src/*.c.asm
