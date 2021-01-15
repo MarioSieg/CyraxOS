@@ -1,11 +1,11 @@
-C_SOURCES = $(wildcard kernel/*.c drivers/*.c src/*.c)
-HEADERS = $(wildcard kernel/*.h drivers/*.h inc/*.h)
-OBJ = ${C_SOURCES:.c=.o}
+CXX_SOURCES = $(wildcard kernel/*.cpp drivers/*.cpp src/*.cpp)
+HEADERS = $(wildcard kernel/*.hpp drivers/*.hpp inc/*.hpp)
+OBJ = ${CXX_SOURCES:.cpp=.o}
 
-CC = gcc
+CXX = g++
 GDB = gdb
 
-CFLAGS = -m32 -elf -fno-pie -Ofast -Wall -Wextra -Werror
+CXXFLAGS = -c -m32 -elf -Wall -Wextra -Werror -Wold-style-cast -fno-stack-protector -ffreestanding -nostdlib -fno-common -fno-exceptions -fno-non-call-exceptions -fno-rtti -std=c++17 -fno-pie
 
 cyrax.iso: boot/bootsect.bin kernel.bin
 	cat $^ > cyrax.iso
@@ -23,9 +23,9 @@ debug: cyrax.iso kernel.elf
 	qemu-system-i386 -s -fda cyrax.iso&
 	${GDB} -ex "target remote localhost:1234" -ex "symbol-file kernel.elf"
 
-%.o: %.c ${HEADERS}
-	${CC} ${CFLAGS} -ffreestanding -nostdlib -c $< -o $@
-	${CC} ${CFLAGS} -ffreestanding -nostdlib -c -S $< -o $<.asm
+%.o: %.cpp ${HEADERS}
+	${CXX} ${CXXFLAGS} $< -o $@
+	${CXX} ${CXXFLAGS} -S $< -o $<.asm
 
 %.o: %.asm
 	nasm $< -f elf -o $@
@@ -36,4 +36,4 @@ debug: cyrax.iso kernel.elf
 clean:
 	rm -rf *.bin *.dis *.o *.elf cyrax.iso
 	rm -rf kernel/*.o boot/*.bin drivers/*.o boot/*.o src/*.o
-	rm -rf kernel/*.c.asm drivers/*.c.asm src/*.c.asm
+	rm -rf kernel/*.cpp.asm drivers/*.cpp.asm src/*.cpp.asm
