@@ -11,13 +11,13 @@ cyrax.iso: boot/bootsect.bin kernel.bin
 	cat $^ > cyrax.iso
 
 kernel.bin: boot/kernel_entry.o ${OBJ}
-	ld -m elf_i386 -o $@ -Ttext 0x1000 $^ --oformat binary
+	ld -m elf_i386 -o $@ -Ttext 0x1000 -e main $^ --oformat binary
 
 kernel.elf: boot/kernel_entry.o ${OBJ}
 	ld -o $@ -Ttext 0x1000 $^ 
 
 run: cyrax.iso
-	qemu-system-i386 -fda cyrax.iso
+	qemu-system-i386 -drive format=raw,file=cyrax.iso
 
 debug: cyrax.iso kernel.elf
 	qemu-system-i386 -s -fda cyrax.iso&
@@ -28,10 +28,11 @@ debug: cyrax.iso kernel.elf
 	${CC} ${CFLAGS} -ffreestanding -nostdlib -c -S $< -o $<.asm
 
 %.o: %.asm
-	nasm $< -f elf -o $@
+	as --32 $< -o $@
 
 %.bin: %.asm
-	nasm $< -f bin -o $@
+	as -o boot/bootsect.o boot/bootsect.asm
+	ld -Ttext=0x7C00 -e 0 --oformat binary -o boot/bootsect.bin boot/bootsect.o
 
 clean:
 	rm -rf *.bin *.dis *.o *.elf cyrax.iso

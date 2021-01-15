@@ -1,60 +1,49 @@
-; Identical to lesson 13's boot sector, but the %included files have new paths
-[org 0x7c00]
-
-KERNEL_OFFSET equ 0x1000 ; The same one we used when linking the kernel
-
-jmp 0x00:entry
+.code16
+.equ KERNEL_OFFSET, 0x1000
 
 entry:
-    xor ax, ax
-    mov es, ax
-    mov ds, ax
-    mov ss, ax
+    xorw %ax, %ax
+    movw %ax, %es
+    movw %ax, %ds
+    movw %ax, %ss
+    movb %dl, (BOOT_DRIVE)      # Remember that the BIOS sets us the boot drive in 'dl' on boot
+    movw $0x9000, %bp
+    movw %bp, %sp
+    movw $MSG_REAL_MODE, %bx
+    callw print
+    callw print_nl
+    callw load_kernel            # read the kernel from disk
+    callw switch_to_pm           # disable interrupts, load GDT,  etc. Finally jumps to 'BEGIN_PM'
 
-    mov [BOOT_DRIVE], dl ; Remember that the BIOS sets us the boot drive in 'dl' on boot
-    mov bp, 0x9000
-    mov sp, bp
+.include "boot/print.asm"
+.include "boot/disk.asm"
+.include "boot/gdt.asm"
+.include "boot/32bit_print.asm"
+.include "boot/switch_pm.asm"
 
-    mov bx, MSG_REAL_MODE 
-    call print
-    call print_nl
-
-    call load_kernel ; read the kernel from disk
-    call switch_to_pm ; disable interrupts, load GDT,  etc. Finally jumps to 'BEGIN_PM'
-    jmp $ ; Never executed
-
-%include "boot/print.asm"
-%include "boot/print_hex.asm"
-%include "boot/disk.asm"
-%include "boot/gdt.asm"
-%include "boot/32bit_print.asm"
-%include "boot/switch_pm.asm"
-
-[bits 16]
+.code16
 load_kernel:
-    mov bx, MSG_LOAD_KERNEL
-    call print
-    call print_nl
+    movw $MSG_LOAD_KERNEL, %bx
+    callw print
+    callw print_nl
+    movw %bx, KERNEL_OFFSET     # Read from disk and store in 0x1000
+    movb $16, %dh               # Make a big space.
+    movb (BOOT_DRIVE), %dl
+    callw disk_load
+    retw
 
-    mov bx, KERNEL_OFFSET ; Read from disk and store in 0x1000
-    mov dh, 16 ; Our future kernel will be larger, make this big
-    mov dl, [BOOT_DRIVE]
-    call disk_load
-    ret
-
-[bits 32]
+.code32
 BEGIN_PM:
-    mov ebx, MSG_PROT_MODE
-    call print_string_pm
-    call KERNEL_OFFSET ; Give control to the kernel
-    jmp $ ; Stay here when the kernel returns control to us (if ever)
+    movl $MSG_PROT_MODE, %ebx
+    calll print_string_pm
+    calll KERNEL_OFFSET
+    hlt
 
+BOOT_DRIVE:         .byte 0     # Stored in memory because dl might get overwritten
 
-BOOT_DRIVE db 0 ; It is a good idea to store it in memory because 'dl' may get overwritten
-MSG_REAL_MODE db "Started in 16-bit Real Mode", 0
-MSG_PROT_MODE db "Landed in 32-bit Protected Mode", 0
-MSG_LOAD_KERNEL db "Loading kernel into memory", 0
+MSG_REAL_MODE:      .asciz "STARTED IN 16 BIT REAL MODE!"
+MSG_PROT_MODE:      .asciz "LANDED IN 32 BIT PROTECTED MODE!"
+MSG_LOAD_KERNEL:    .asciz "LOADING KERNEL..."
 
-; padding
-times 510 - ($-$$) db 0
-dw 0xaa55
+.fill 510-(.-entry), 1, 0       # Fill 510 bytes padding.
+.word 0xAA55                    # Magic word to make sector bootable.
