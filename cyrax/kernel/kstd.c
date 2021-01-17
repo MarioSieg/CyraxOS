@@ -4,7 +4,7 @@
 #include "../drivers/screen.h"
 
 void* kmemcpy(void *const _dst, const void *const _src, const size_t _size) {
-    register uint8_t* dst = (uint8_t*)dst;
+    register uint8_t* dst = (uint8_t*)_dst;
     register const uint8_t* src = (const uint8_t*)_src;
     register const uint8_t* end = src + _size - 1; 
     while(src != end) {
@@ -14,7 +14,7 @@ void* kmemcpy(void *const _dst, const void *const _src, const size_t _size) {
 }
 
 volatile void* kvmemcpy(volatile void *const _dst, const volatile  void *const _src, const volatile size_t _size) {
-    register volatile uint8_t* dst = (uint8_t*)dst;
+    register volatile uint8_t* dst = (uint8_t*)_dst;
     register volatile const uint8_t* src = (const uint8_t*)_src;
     register volatile const uint8_t* end = src + _size - 1; 
     while(src != end)
@@ -23,7 +23,7 @@ volatile void* kvmemcpy(volatile void *const _dst, const volatile  void *const _
 }
 
 void* kmemset(void *const _dst, const uint8_t _value, const size_t _size) {
-    register uint8_t* dst = (uint8_t*)dst;
+    register uint8_t* dst = (uint8_t*)_dst;
     register const uint8_t* end = dst +  _size - 1; 
     while(dst != end) {
         *dst++ = _value;
@@ -32,7 +32,7 @@ void* kmemset(void *const _dst, const uint8_t _value, const size_t _size) {
 }
 
 volatile void* kvmemset(volatile void *const _dst, const uint8_t _value, const size_t _size) {
-    register volatile uint8_t* dst = (uint8_t*)dst;
+    register volatile uint8_t* dst = (uint8_t*)_dst;
     register volatile const uint8_t* end = dst +  _size - 1; 
     while(dst != end) {
         *dst++ = _value;
